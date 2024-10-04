@@ -1,0 +1,24 @@
+.input-group-text-custom {
+    border-radius: 4px 0 0 4px;
+    padding: 0.5rem;
+}
+
+.search-input {
+    padding-left: 0.5rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.group-btn {
+    color: #555555;
+    border-radius: 4px;
+}
+
+.assignment-btn {
+    background-color: #d32f2f;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.wd-lesson {
+    border-left: 4px solid green;
+}
