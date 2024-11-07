@@ -1,10 +1,11 @@
-import React from 'react';
 import ModulesControls from './ModulesControls';
 import ModuleControlButtons from './ModuleControlButtons';
 import { BsGripVertical } from 'react-icons/bs';
 import LessonControlButtons from './LessonControlButtons';
 import { useParams } from "react-router";
 import * as db from "../../Database";
+import React, { useState } from "react";
+
 
 
 export default function Modules() {
