@@ -1,61 +1,107 @@
-import React from 'react';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteAssignment } from "./reducer";
+import { IoIosSearch } from "react-icons/io";
+import { FaTrash } from "react-icons/fa";
+import { VscNotebook } from "react-icons/vsc";
+import DeleteDialog from "./DeleteDialog";
+import { useParams } from "react-router-dom";
+import LessonControlButtons from "../Modules/LessonControlButtons";
 import { BsGripVertical } from "react-icons/bs";
-import { FaClipboardList, FaCaretDown } from "react-icons/fa";
-import ModuleControlButtons from '../Modules/ModuleControlButtons';
-import LessonControlButtons from '../Modules/LessonControlButtons';
-import Controller from './Controler';
-import { useParams } from 'react-router-dom'; 
-import * as db from "../../Database"; 
+import BSGripVertical from "../Modules/BsGripVertical";
+import AssignmentHeaderButtons from "./AssignmentHeaderButtons";
+import AssignmentsControl from "./AssignmentsControl";
 
 export default function Assignments() {
-    const { cid } = useParams();
-    const assignments = db.assignments.filter((assignment) => assignment.course === cid);
+  const dispatch = useDispatch();
+  const { cid } = useParams();
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-    return (
-        <div id="wd-assignments" className="p-4">
-            <Controller />
-            <div>
-                <ul id="wd-modules" className="list-group rounded-0">
-                    <li className="wd-module list-group-item p-0 mb-4 fs-5 border-gray">
-                        <div className="wd-title p-3 bg-light d-flex justify-content-between align-items-center">
-                            <div>
-                                <BsGripVertical className="me-2 fs-4" />
-                                <FaCaretDown />
-                                ASSIGNMENTS
-                            </div>
-                            <span className="px-2 py-1 border rounded" style={{ borderColor: '#d3d3d3' }}>
-                                40% of Total
-                            </span>
-                            <ModuleControlButtons />
-                        </div>
+  const handleDeletion = (assignmentId: string) => {
+    dispatch(deleteAssignment(assignmentId));
+    setSelectedAssignmentId(null);
+    setShowDeleteDialog(false);
+  };
 
-                        <ul className="wd-lessons list-group rounded-0">
-                            {assignments.map((assignment) => (
-                                <li key={assignment._id} className="wd-lesson list-group-item p-3 d-flex justify-content-between align-items-start">
-                                    <div className="d-flex flex-column">
-                                        <div className="d-flex align-items-center mb-1">
-                                            <BsGripVertical className="me-3 fs-4 text-muted" />
-                                            <FaClipboardList className="text-success me-2 fs-4" />
-                                            <a className="wd-assignment-link text-dark fw-bold text-decoration-none" href={`#/Kanbas/Courses/${assignment.course}/Assignments/${assignment._id}`}>
-                                                {assignment.title}
-                                            </a>
-                                        </div>
-                                        <div className="d-flex align-items-center small">
-                                            <span className="text-danger">{assignment.course}</span>
-                                            <span className="ms-3 text-black">| Not available until {assignment.avaDate}</span>
-                                            <span className="ms-3 text-black">| <strong>Due</strong> {assignment.dueDate}</span>
-                                            <span className="ms-3 text-black">| 100 pts</span>
-                                        </div>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <LessonControlButtons />
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+  const handleDeleteClick = (assignmentId: string) => {
+    setSelectedAssignmentId(assignmentId);
+    setShowDeleteDialog(true);
+  };
+
+  return (
+    <div>
+      <div className="row mb-3 align-items-center">
+        <div className="col-auto">
+          <div className="d-flex align-items-center">
+            <IoIosSearch className="me-2" />
+            <input id="wd-search-assignment" className="form-control" placeholder="Search for Assignment" />
+          </div>
         </div>
-    );
+        {currentUser.role === "FACULTY" && <AssignmentsControl />}
+      </div>
+      <ul id="wd-assignments" className="list-group rounded-0">
+        <li className="wd-assignment-group list-group-item p-0 mb-5 fs-5 border-gray">
+          <div className="wd-title p-3 ps-2 bg-secondary align-items-center">
+            {currentUser.role === "FACULTY" && <BSGripVertical />}
+            ASSIGNMENTS
+            {currentUser.role === "FACULTY" && <AssignmentHeaderButtons />}
+          </div>
+          <ul className="wd-lessons list-group rounded-0">
+            {assignments
+              .filter((assignment: any) => assignment.course === cid)
+              .map((assignment: any) => {
+                const dueDate = new Date(assignment.dueDate);
+                const availableDate = new Date(assignment.availableFrom);
+                const formattedAvailableFromDate = availableDate.toLocaleString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                });
+                const formattedDueDate = dueDate.toLocaleString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                });
+                return (
+                  <li key={assignment._id} className="wd-lesson list-group-item p-3 ps-1 d-flex align-items-center">
+                    {currentUser.role === "FACULTY" && <BsGripVertical />}
+                    <VscNotebook color="green" className="me-3" />
+                    <div className="me-5">
+                      <a className="wd-assignment-link text-dark text-decoration-none" href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}>
+                        {assignment.title}
+                      </a>
+                      <div className="text-muted small">
+                        <strong>Not available until</strong> {formattedAvailableFromDate} | <strong> Due</strong> {formattedDueDate} | {assignment.points} pts
+                      </div>
+                    </div>
+                    {currentUser.role === "FACULTY" && (
+                      <div className="ms-auto">
+                        <FaTrash
+                          className="text-danger me-2 mb-1"
+                          onClick={() => handleDeleteClick(assignment._id)}
+                        />
+                        <LessonControlButtons />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+        </li>
+      </ul>
+      <DeleteDialog
+        assignmentId={selectedAssignmentId}
+        onConfirm={handleDeletion}
+        show={showDeleteDialog}
+        onHide={() => setShowDeleteDialog(false)}
+      />
+    </div>
+  );
 }
