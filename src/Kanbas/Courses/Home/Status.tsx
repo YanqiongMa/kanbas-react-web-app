@@ -1,13 +1,9 @@
+import React from 'react';
 import { MdDoNotDisturbAlt } from "react-icons/md";
 import { FaCheckCircle } from "react-icons/fa";
 import { BiImport } from "react-icons/bi";
 import { LiaFileImportSolid } from "react-icons/lia";
-import { LiaTachometerAltSolid } from "react-icons/lia";
-import { MdViewList } from "react-icons/md";
-import { TfiAnnouncement } from "react-icons/tfi";
-import { SiSimpleanalytics } from "react-icons/si";
-import { IoMdNotificationsOutline } from "react-icons/io";
-
+{/* Find more icons */}
 export default function CourseStatus() {
   return (
     <div id="wd-course-status" style={{ width: "300px" }}>
@@ -28,17 +24,14 @@ export default function CourseStatus() {
         <LiaFileImportSolid className="me-2 fs-5" /> Import from Commons </button>
       {/* Complete the rest of the buttons */}
       <button className="btn btn-lg btn-secondary w-100 mt-1 text-start">
-      <LiaTachometerAltSolid className="me-2 fs-5" /> Choose Home Page </button>
+      <LiaFileImportSolid className="me-2 fs-5" /> Choose Home Page </button>
       <button className="btn btn-lg btn-secondary w-100 mt-1 text-start">
-      <MdViewList className="me-2 fs-5" /> View Course Page </button>
+      <LiaFileImportSolid className="me-2 fs-5" /> View Course Stream </button>
       <button className="btn btn-lg btn-secondary w-100 mt-1 text-start">
-      <TfiAnnouncement className="me-2 fs-5" /> New Announcement </button>
+      <LiaFileImportSolid className="me-2 fs-5" /> New Announcement </button>
       <button className="btn btn-lg btn-secondary w-100 mt-1 text-start">
-      <SiSimpleanalytics className="me-2 fs-5" /> New Analytics </button>
+      <LiaFileImportSolid className="me-2 fs-5" /> New Analytics </button>
       <button className="btn btn-lg btn-secondary w-100 mt-1 text-start">
-      <IoMdNotificationsOutline className="me-2 fs-5" /> View Course Notifications </button>  
-
-
-
+      <LiaFileImportSolid className="me-2 fs-5" /> View Course Notifications </button>
     </div>
 );}
