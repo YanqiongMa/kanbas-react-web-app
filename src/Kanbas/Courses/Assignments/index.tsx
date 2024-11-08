@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BsGripVertical } from "react-icons/bs";
 import { FaClipboardList, FaCaretDown } from "react-icons/fa";
 import ModuleControlButtons from '../Modules/ModuleControlButtons';
@@ -10,6 +10,21 @@ import * as db from "../../Database";
 export default function Assignments() {
     const { cid } = useParams();
     const assignments = db.assignments.filter((assignment) => assignment.course === cid);
+
+    const [modules, setModules] = useState<any[]>(db.modules); // 假设 db.modules 是一个数组
+
+    const moduleId = "assignments-module";
+    const deleteModule = (id: string) => {
+        console.log(`Deleting module with id: ${id}`);
+    };
+
+    const editModule = (moduleId: string) => {
+        setModules(modules.map((m: any) => (m._id === moduleId ? { ...m, editing: true } : m)));
+    };
+
+    const updateModule = (module: any) => {
+        setModules(modules.map((m: any) => (m._id === module._id ? module : m)));
+    };
 
     return (
         <div id="wd-assignments" className="p-4">
@@ -26,7 +41,7 @@ export default function Assignments() {
                             <span className="px-2 py-1 border rounded" style={{ borderColor: '#d3d3d3' }}>
                                 40% of Total
                             </span>
-                            <ModuleControlButtons />
+                            <ModuleControlButtons  moduleId={moduleId} deleteModule={deleteModule} editModule={editModule}/>
                         </div>
 
                         <ul className="wd-lessons list-group rounded-0">
