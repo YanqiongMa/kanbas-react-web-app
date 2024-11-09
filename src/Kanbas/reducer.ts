@@ -1,32 +1,46 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { enrollments } from "../Kanbas/Database";
-const initialState = {
-  enrollments: enrollments,
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { enrollments as initialEnrollments } from "../Kanbas/Database";
+
+interface Enrollment {
+  _id: string;
+  user: string;
+  course: string;
+}
+
+interface EnrollmentsState {
+  enrollments: Enrollment[];
+  enrollmentsOn: boolean;
+}
+
+const initialState: EnrollmentsState = {
+  enrollments: initialEnrollments,
   enrollmentsOn: false,
 };
+
 const enrollmentsSlice = createSlice({
   name: "enrollments",
   initialState,
   reducers: {
-    enroll: (state, { payload: enrollment }) => {
-      const newEnrollment: any = {
+    enroll: (state, action: PayloadAction<Omit<Enrollment, "_id">>) => {
+      const { user, course } = action.payload;
+      const newEnrollment: Enrollment = {
         _id: new Date().getTime().toString(),
-        user: enrollment.user,
-        course: enrollment.course,
+        user,
+        course,
       };
-      state.enrollments = [...state.enrollments, newEnrollment] as any;
+      state.enrollments.push(newEnrollment);
     },
-    unenroll: (state, { payload: enrollment }) => {
+    unenroll: (state, action: PayloadAction<{ user: string; course: string }>) => {
+      const { user, course } = action.payload;
       state.enrollments = state.enrollments.filter(
-        (e: any) =>
-          !(e.user === enrollment.user && e.course === enrollment.course)
+        (enrollment) => enrollment.user !== user || enrollment.course !== course
       );
     },
-    enrollmentsOnSwitch: (state) => {
+    toggleEnrollmentsOn: (state) => {
       state.enrollmentsOn = !state.enrollmentsOn;
     },
   },
 });
-export const { enroll, unenroll, enrollmentsOnSwitch } =
-  enrollmentsSlice.actions;
+
+export const { enroll, unenroll, toggleEnrollmentsOn } = enrollmentsSlice.actions;
 export default enrollmentsSlice.reducer;

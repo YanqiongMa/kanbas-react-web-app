@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { unenroll, enroll, enrollmentsOnSwitch } from "./reducer";
+import { unenroll, enroll, toggleEnrollmentsOn } from "./reducer";
 
 export default function Dashboard({
   courses,
@@ -32,7 +32,7 @@ export default function Dashboard({
           <button
             className="btn btn-primary float-end"
             id="wd-add-new-course-click"
-            onClick={(e) => dispatch(enrollmentsOnSwitch())}
+            onClick={(e) => dispatch(toggleEnrollmentsOn())}
           >
             Enrollments
           </button>
