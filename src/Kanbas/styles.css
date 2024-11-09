@@ -1,18 +1,23 @@
-body   {  margin: 0;  padding: 0;  }
-body * {  font-family: Arial, Helvetica, sans-serif;  }
-
-@media (min-width: 768px) {
-  #wd-kanbas .wd-main-content-offset {
-    padding-left: 140px !important;
+body {
+    margin: 0;
+    padding: 0;
   }
-}
-
-.list-group.wd > .list-group-item.active {
+  body * {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  @media (min-width: 768px) {
+    #wd-kanbas .wd-main-content-offset {
+      padding-left: 140px !important;
+    }
+  }
+  
+  .list-group.wd > .list-group-item.active {
     color: black;
     background-color: white;
     border-left: 3px solid black !important;
   }
-
+  
   .btn-secondary {
     --bs-btn-color: #000 !important;
     --bs-btn-bg: #c7cdd1 !important;
@@ -28,4 +33,3 @@ body * {  font-family: Arial, Helvetica, sans-serif;  }
   .wd-lesson {
     border-left: 3px solid green !important;
   }
-  

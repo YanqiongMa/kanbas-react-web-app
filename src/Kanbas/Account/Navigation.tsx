@@ -1,28 +1,26 @@
 import { Link, useLocation } from "react-router-dom";
-import React from 'react';
+import { useSelector } from "react-redux";
 
 export default function AccountNavigation() {
-  const location = useLocation();
-
-  // Helper function to check if a link is active
-  const isActive = (path: string) => location.pathname === path;
+  const { pathname } = useLocation();
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const links = currentUser ? ["Profile"] : ["Signin", "Signup"];
 
   return (
-    <div id="wd-account-navigation" className="wd list-group fs-5 rounded-0">
-      <Link to="/Kanbas/Account/Signin" id="wd-account-signin-link"
-        className={`list-group-item ${isActive("/Kanbas/Account/Signin") ? 'active' : 'text-danger'} border border-0`}>
-        Signin
-      </Link>
-
-      <Link to="/Kanbas/Account/Signup" id="wd-account-signup-link"
-        className={`list-group-item ${isActive("/Kanbas/Account/Signup") ? 'active' : 'text-danger'} border border-0`}>
-        Signup
-      </Link>
-
-      <Link to="/Kanbas/Account/Profile" id="wd-account-profile-link"
-        className={`list-group-item ${isActive("/Kanbas/Account/Profile") ? 'active' : 'text-danger'} border border-0`}>
-        Profile
-      </Link>
+    <div
+      id="wd-courses-navigation"
+      className="wd list-group fs-5 rounded-0 me-2"
+    >
+      {links.map((link) => (
+        <Link
+          id={`wd-course-${link}-link`}
+          to={link}
+          className={`list-group-item border border-0 fs-5
+              ${pathname.includes(link) ? "active" : "text-danger"}`}
+        >
+          {link}
+        </Link>
+      ))}
     </div>
   );
 }

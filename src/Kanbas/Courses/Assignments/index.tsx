@@ -1,76 +1,114 @@
-import React, { useState } from 'react';
 import { BsGripVertical } from "react-icons/bs";
-import { FaClipboardList, FaCaretDown } from "react-icons/fa";
-import ModuleControlButtons from '../Modules/ModuleControlButtons';
-import LessonControlButtons from '../Modules/LessonControlButtons';
-import Controller from './Controler';
-import { useParams } from 'react-router-dom'; 
-import * as db from "../../Database"; 
+import { MdOutlineAssignment } from "react-icons/md";
+import LControlButtons from "./LessonControlButtons";
+import AssignmentsControls from "./AssignmentsControls";
+import GroupButtons from "./GroupButtons";
+import {  useParams } from "react-router";
+import React, { useState } from "react";
+import { deleteAssignment } from "./reducer";
+import { useSelector, useDispatch } from "react-redux";
 
 export default function Assignments() {
-    const { cid } = useParams();
-    const assignments = db.assignments.filter((assignment) => assignment.course === cid);
+  const { cid } = useParams();
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+  const [currentAssignmentId, setId] = useState("");
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
 
-    const [modules, setModules] = useState<any[]>(db.modules); // 假设 db.modules 是一个数组
+  const dispatch = useDispatch();
 
-    const moduleId = "assignments-module";
-    const deleteModule = (id: string) => {
-        console.log(`Deleting module with id: ${id}`);
-    };
-
-    const editModule = (moduleId: string) => {
-        setModules(modules.map((m: any) => (m._id === moduleId ? { ...m, editing: true } : m)));
-    };
-
-    const updateModule = (module: any) => {
-        setModules(modules.map((m: any) => (m._id === module._id ? module : m)));
-    };
-
-    return (
-        <div id="wd-assignments" className="p-4">
-            <Controller />
-            <div>
-                <ul id="wd-modules" className="list-group rounded-0">
-                    <li className="wd-module list-group-item p-0 mb-4 fs-5 border-gray">
-                        <div className="wd-title p-3 bg-light d-flex justify-content-between align-items-center">
-                            <div>
-                                <BsGripVertical className="me-2 fs-4" />
-                                <FaCaretDown />
-                                ASSIGNMENTS
-                            </div>
-                            <span className="px-2 py-1 border rounded" style={{ borderColor: '#d3d3d3' }}>
-                                40% of Total
+  return (
+    <div id="wd-assignments" className="me-2">
+      <div className="row align-items-center mb-4">
+        <AssignmentsControls />
+      </div>
+      <ul className="list-group rounded-0 d-block">
+        <li className="wd-module list-group-item p-0 mb-5 fs-5 border-gray">
+          <div className="wd-title p-3 ps-2 bg-secondary">
+            <BsGripVertical className="me-2 fs-3" />
+            ASSIGNMENTS
+            <GroupButtons />
+          </div>
+          <ul id="wd-assignment-list" className="list-group rounded-0">
+            {assignments
+              .filter((assignment: any) => assignment.course === cid)
+              .map((assignment: any) => (
+                <li className="wd-assignment-list-item list-group-item p-3 ps-1 d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center">
+                    <BsGripVertical className="me-2 fs-3" />
+                    <MdOutlineAssignment className="me-3 fs-5 text-success" />
+                    <div className="d-flex flex-column">
+                      {currentUser.role === "FACULTY" && (
+                        <a
+                          className="wd-assignment-link wd-title"
+                          href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
+                        >
+                          {assignment.title}
+                        </a>
+                      )}
+                      {currentUser.role !== "FACULTY" && (
+                        <span className="wd-title">{assignment.title}</span>
+                      )}
+                      <div className="wd-assignment-list-details">
+                        <div>
+                          {assignment.modules && (
+                            <span className="text-danger">
+                              {assignment.modules} &nbsp;&nbsp;| &nbsp;&nbsp;
                             </span>
-                            <ModuleControlButtons  moduleId={moduleId} deleteModule={deleteModule} editModule={editModule}/>
+                          )}
+                          {assignment.available_date && (
+                            <span>
+                              <b>Not available until </b>
+                              {new Date(
+                                assignment.available_date
+                              ).toLocaleDateString("en-US", {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "numeric",
+                                hour12: true,
+                              })}
+                              &nbsp;&nbsp;|&nbsp;&nbsp;
+                            </span>
+                          )}
                         </div>
-
-                        <ul className="wd-lessons list-group rounded-0">
-                            {assignments.map((assignment) => (
-                                <li key={assignment._id} className="wd-lesson list-group-item p-3 d-flex justify-content-between align-items-start">
-                                    <div className="d-flex flex-column">
-                                        <div className="d-flex align-items-center mb-1">
-                                            <BsGripVertical className="me-3 fs-4 text-muted" />
-                                            <FaClipboardList className="text-success me-2 fs-4" />
-                                            <a className="wd-assignment-link text-dark fw-bold text-decoration-none" href={`#/Kanbas/Courses/${assignment.course}/Assignments/${assignment._id}`}>
-                                                {assignment.title}
-                                            </a>
-                                        </div>
-                                        <div className="d-flex align-items-center small">
-                                            <span className="text-danger">{assignment.course}</span>
-                                            <span className="ms-3 text-black">| Not available until {assignment.avaDate}</span>
-                                            <span className="ms-3 text-black">| <strong>Due</strong> {assignment.dueDate}</span>
-                                            <span className="ms-3 text-black">| 100 pts</span>
-                                        </div>
-                                    </div>
-                                    <div className="d-flex align-items-center">
-                                        <LessonControlButtons />
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    );
+                        {assignment.due_date && (
+                          <span>
+                            <b>Due </b>
+                            {new Date(assignment.due_date).toLocaleDateString(
+                              "en-US",
+                              {
+                                weekday: "long",
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "numeric",
+                                hour12: true,
+                              }
+                            )}
+                            &nbsp;&nbsp;| &nbsp;&nbsp;
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <LControlButtons
+                      assignmentId={assignment._id}
+                      currentAssignmentId={currentAssignmentId}
+                      setId={setId}
+                      deleteAssignment={(assignmentId) => {
+                        dispatch(deleteAssignment(assignmentId));
+                      }}
+                    />
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </li>
+      </ul>
+    </div>
+  );
 }

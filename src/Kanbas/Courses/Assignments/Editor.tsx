@@ -1,154 +1,191 @@
-import React from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
-import * as db from '../../Database'; 
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addAssignment, updateAssignment } from "./reducer";
+import { RootState } from "../../store";
 
-function convertToDateTimeLocal(avaDate: string): string {
-  const months: { [key: string]: string } = {
-    "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06",
-    "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12"
+type Assignment = {
+  _id?: string;
+  title: string;
+  course: string;
+  modules: string;
+  description: string;
+  points: string;
+  due_date: string;
+  available_date: string;
+  available_until_date: string;
+};
+
+const AssignmentEditor: React.FC = () => {
+  const { cid, aid } = useParams<{ cid: string; aid: string }>();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const assignments = useSelector((state: RootState) => state.assignmentsReducer.assignments);
+
+  const initialAssignment: Assignment = {
+    title: "",
+    course: cid || "",
+    modules: "",
+    description: "",
+    points: "",
+    due_date: "",
+    available_date: "",
+    available_until_date: "",
+    ...(assignments.find((a) => a._id === aid)
+      ? {
+          ...assignments.find((a) => a._id === aid),
+          points: String(assignments.find((a) => a._id === aid)!.points),
+          due_date: assignments.find((a) => a._id === aid)?.dueDate || "",
+          available_date: assignments.find((a) => a._id === aid)?.availableDate || "",
+          available_until_date: assignments.find((a) => a._id === aid)?.availableDate || "",
+        }
+      : {}),
   };
 
-  const [monthDay, timePart] = avaDate.split(" at ");
-  const [month, day] = monthDay.split(" ");
+  const [assignment, setAssignment] = useState<Assignment>(initialAssignment);
 
-  const monthNumber = months[month as keyof typeof months]; 
+  const handleSave = () => {
+    if (assignment.title.trim()) {
+      assignment._id
+        ? dispatch(updateAssignment(assignment))
+        : dispatch(addAssignment(assignment));
+      navigate(`/Kanbas/Courses/${cid}/Assignments`);
+    }
+  };
 
-  const [time, meridian] = timePart.split(/(am|pm)/);
-
-  let [hours, minutes] = time.split(":");
-  if (meridian === "pm" && hours !== "12") {
-    hours = String(Number(hours) + 12);
-  } else if (meridian === "am" && hours === "12") {
-    hours = "00";
-  }
-
-  const year = new Date().getFullYear();
-
-  return `${year}-${monthNumber}-${day.padStart(2, '0')}T${hours.padStart(2, '0')}:${minutes || '00'}`;
-}
-
-export default function AssignmentEditor() {
-  const { cid } = useParams();
-  const { pathname } = useLocation();
-  const assignmentName = pathname.split("/")[5];
-  const assignment = db.assignments.find((assignment) => assignment._id === assignmentName);
-
-  if (!assignment) {
-    return <div>Assignment not found</div>;
-  }
-
-  const availableDateLocal = convertToDateTimeLocal(assignment.avaDate);
-  const dueDateLocal = convertToDateTimeLocal(assignment.dueDate);
+  const handleChange = (field: keyof Assignment, value: string) => {
+    setAssignment((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
-    <div id="wd-assignments-editor" className="container mt-4">
-      <div className="mb-3">
-        <label htmlFor="wd-name" className="form-label">Assignment Name</label>
-        <input id="wd-name" className="form-control" defaultValue={assignment.title} />
-      </div>
+    <div>
+      <form id="assignment-form" className="g-3">
+        <InputField label="Assignment Name" value={assignment.title} onChange={(e) => handleChange("title", e.target.value)} />
+        <TextAreaField label="Description" value={assignment.description} onChange={(e) => handleChange("description", e.target.value)} />
+        <InputField label="Points" value={assignment.points} onChange={(e) => handleChange("points", e.target.value)} />
 
-      <div className="mb-3">
-        <label htmlFor="wd-description" className="form-label">Description</label>
-        <textarea
-          id="wd-description"
-          className="form-control"
-          rows={6}
-          defaultValue={`
-            The assignment is available online. Submit a link to the landing page of your Web application running on Netlify.
-            The landing page should include the following:
-            · Your full name and section
-            · Links to each of the lab assignments
-            · Link to the Kanbas application
-            · Links to all relevant source code repositories
-            · The Kanbas application should include a link to navigate back to the landing page.
-          `}
-        />
-      </div>
+        <SelectField label="Assignment Group" options={["Assignments", "Quizzes", "Project"]} />
+        <SelectField label="Display Grade As" options={["Percentage", "Points"]} />
 
-      <div className="row">
-        <div className="col-md-4 mb-3">
-          <label htmlFor="wd-points" className="form-label">Points</label>
-          <input id="wd-points" type="number" className="form-control" defaultValue={100} />
-        </div>
+        <SubmissionTypeSelect />
+        <AssignmentDateInputs assignment={assignment} onDateChange={handleChange} />
 
-        <div className="col-md-4 mb-3">
-          <label htmlFor="wd-assignment-group" className="form-label">Assignment Group</label>
-          <select id="wd-assignment-group" className="form-control">
-            <option value="assignments">ASSIGNMENTS</option>
-            <option value="quizzes">QUIZZES</option>
-            <option value="exams">EXAMS</option>
-            <option value="homework">HOMEWORK</option>
-          </select>
-        </div>
-
-        <div className="col-md-4 mb-3">
-          <label htmlFor="wd-display-grade" className="form-label">Display Grade as</label>
-          <select id="wd-display-grade" className="form-control">
-            <option value="percentage">Percentage</option>
-            <option value="points">Points</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="row mb-3" style={{ border: '2px solid #ddd', padding: '15px', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
-        <div className="col-md-6 mb-3">
-          <label htmlFor="wd-submission-type" className="form-label">Submission Type</label>
-          <select id="wd-submission-type" className="form-control">
-            <option value="online">Online</option>
-            <option value="on-paper">On Paper</option>
-          </select>
-        </div>
-
-        <div className="col-md-6 mb-3">
-          <label className="form-label" style={{ fontWeight: 'bold' }}>Online Entry Options</label>
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" id="wd-text-entry" />
-            <label className="form-check-label" htmlFor="wd-text-entry">Text Entry</label>
-          </div>
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" id="wd-website-url" defaultChecked />
-            <label className="form-check-label" htmlFor="wd-website-url">Website URL</label>
-          </div>
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" id="wd-media-recordings" />
-            <label className="form-check-label" htmlFor="wd-media-recordings">Media Recordings</label>
-          </div>
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" id="wd-student-annotation" />
-            <label className="form-check-label" htmlFor="wd-student-annotation">Student Annotation</label>
-          </div>
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" id="wd-file-uploads" />
-            <label className="form-check-label" htmlFor="wd-file-uploads">File Uploads</label>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-3" style={{ border: '2px solid #ddd', padding: '15px', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
-        <div className="mb-3">
-          <label htmlFor="wd-assign-to" className="form-label">Assign to</label>
-          <input id="wd-assign-to" className="form-control" defaultValue="Everyone" readOnly />
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="wd-due-date" className="form-label" style={{ fontWeight: 'bold' }}>Due</label>
-          <input type="datetime-local" id="wd-due-date" className="form-control" defaultValue={dueDateLocal} />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label" style={{ fontWeight: 'bold' }}>Available from / Until</label>
-          <div className="d-flex">
-            <input type="datetime-local" id="wd-available-from" className="form-control me-2" defaultValue={availableDateLocal} />
-            <input type="datetime-local" id="wd-until" className="form-control" defaultValue={dueDateLocal} />
-          </div>
-        </div>
-      </div>
-
-      <div className="d-flex justify-content-end mt-4">
-        <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-secondary me-2">Cancel</Link>
-        <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-danger">Save</Link>
-      </div>
+        <hr />
+        <button type="button" className="btn btn-lg btn-danger me-1 float-end" onClick={handleSave}>
+          Save
+        </button>
+        <Link to={`/Kanbas/Courses/${cid}/Assignments`}>
+          <button type="button" className="btn btn-lg btn-secondary me-1 float-end">
+            Cancel
+          </button>
+        </Link>
+      </form>
     </div>
   );
+};
+
+interface InputFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
+const InputField: React.FC<InputFieldProps> = ({ label, value, onChange }) => (
+  <div className="mb-3">
+    <label className="form-label">{label}</label>
+    <input type="text" className="form-control" value={value} onChange={onChange} />
+  </div>
+);
+
+interface TextAreaFieldProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+const TextAreaField: React.FC<TextAreaFieldProps> = ({ label, value, onChange }) => (
+  <div className="mb-3">
+    <label className="form-label">{label}</label>
+    <textarea className="form-control" rows={5} value={value} onChange={onChange}></textarea>
+  </div>
+);
+
+interface SelectFieldProps {
+  label: string;
+  options: string[];
+}
+
+const SelectField: React.FC<SelectFieldProps> = ({ label, options }) => (
+  <div className="row mb-3">
+    <label className="col-sm-2 col-form-label text-end">{label}</label>
+    <div className="col">
+      <select className="form-select">
+        {options.map((opt) => (
+          <option key={opt} value={opt.toUpperCase()}>
+            {opt}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+);
+
+const SubmissionTypeSelect: React.FC = () => (
+  <fieldset className="row mb-3">
+    <legend className="col-form-label col-sm-2 pt-0 text-end">Submission Type</legend>
+    <div className="col">
+      <div className="border rounded p-3">
+        <select className="form-select mb-3">
+          <option value="Online">Online</option>
+          <option value="Offline">InPerson</option>
+        </select>
+        <legend className="form_input_header_label col-form-label col-sm-3 pt-0 mb-2">
+          Online Entry Options
+        </legend>
+        {["Text Entry", "Website URL", "Media Recordings", "File Uploads"].map((option) => (
+          <div className="form-check" key={option}>
+            <input type="checkbox" className="form-check-input" id={`wd-${option.toLowerCase().replace(" ", "-")}`} />
+            <label htmlFor={`wd-${option.toLowerCase().replace(" ", "-")}`} className="form-check-label ms-2">
+              {option}
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  </fieldset>
+);
+
+interface AssignmentDateInputsProps {
+  assignment: Assignment;
+  onDateChange: (field: keyof Assignment, date: string) => void;
+}
+
+const AssignmentDateInputs: React.FC<AssignmentDateInputsProps> = ({ assignment, onDateChange }) => (
+  <fieldset className="row mb-5">
+    <legend className="col-form-label col-sm-2 pt-0 text-end">Assign</legend>
+    <div className="col">
+      <div className="border rounded p-3">
+        <DateField label="Due Date" value={assignment.due_date} onChange={(date) => onDateChange("due_date", date)} />
+        <DateField label="Available From" value={assignment.available_date} onChange={(date) => onDateChange("available_date", date)} />
+        <DateField label="Available Until" value={assignment.available_until_date} onChange={(date) => onDateChange("available_until_date", date)} />
+      </div>
+    </div>
+  </fieldset>
+);
+
+interface DateFieldProps {
+  label: string;
+  value: string;
+  onChange: (date: string) => void;
+}
+
+const DateField: React.FC<DateFieldProps> = ({ label, value, onChange }) => (
+  <div className="col-md-6 mb-3">
+    <label className="form-label">{label}</label>
+    <input type="date" className="form-control" value={value} onChange={(e) => onChange(e.target.value)} />
+  </div>
+);
+
+export default AssignmentEditor;
