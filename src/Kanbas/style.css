@@ -1,0 +1,62 @@
+/* Global Reset */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Main Content Offset for Larger Screens */
+@media (min-width: 768px) {
+  #wd-kanbas .wd-main-content-offset {
+    padding-left: 140px !important;
+  }
+}
+
+/* List Group Active Item Styles */
+.list-group.wd > .list-group-item.active {
+  color: black;
+  background-color: white;
+  border-left: 3px solid black !important;
+}
+
+/* Secondary Button Styles */
+.btn-secondary {
+  color: #000 !important;
+  background-color: #c7cdd1 !important;
+  border-color: #c7cdd1 !important;
+}
+.btn-secondary:hover {
+  color: #fff !important;
+  background-color: #a1a8ad !important; /* 适当调整hover状态颜色 */
+  border-color: #a1a8ad !important;
+}
+
+/* Secondary Background */
+.bg-secondary {
+  background-color: rgb(199, 205, 209) !important;
+}
+
+/* List Group Border */
+.list-group-item {
+  border-color: gray !important; /* 优化为标准CSS属性 */
+}
+
+/* Lesson Style */
+.wd-lesson {
+  border-left: 3px solid green !important;
+}
+
+/* Assignment Description and Due */
+.wd-assignment-description, 
+.wd-assignment-due {
+  font-size: 14px;
+}
+
+/* Additional Example: Remove Comment and Add Assignment Link */
+.wd-assignment-link {
+  color: black !important;
+  text-decoration: none; /* 去除下划线 */
+}
+.wd-assignment-link:hover {
+  color: green !important; /* hover状态变色 */
+}
